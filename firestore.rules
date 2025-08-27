@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- 🔐 HELPER: Check if user is admin ---
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // --- 👤 USERS ---
+    match /users/{userId} {
+      // Only the user or an admin can read/write/delete user profiles
+      allow read, write, delete: if request.auth != null && 
+        (request.auth.uid == userId || isAdmin());
+
+      // --- 📄 SUBCOLLECTION: INTERVIEWS (under users/{userId}/interviews) ---
+      match /interviews/{interviewId} {
+        allow read, write, delete: if request.auth != null && 
+          (request.auth.uid == userId || isAdmin());
+      }
+    }
+
+    // --- 🧑‍💼 ADMIN INTERVIEWS (Top-level collection) ---
+    match /interviews/{interviewId} {
+      // Only admins can manage top-level interviews
+      allow read, write, delete: if request.auth != null && isAdmin();
+    }
+
+    // --- 💬 FEEDBACK ---
+    match /feedback/{docId} {
+      // Any logged-in user can submit feedback
+      allow create: if request.auth != null;
+      
+      // Only admins can view/update/delete feedback
+      allow read, update, delete: if request.auth != null && isAdmin();
+    }
+
+    // --- 🧾 INTERVIEWS FEEDBACK ---
+    match /interviewsfeedback/{docId} {
+      // Only admins can read
+      allow read: if request.auth != null && isAdmin();
+
+      // Disallow all other operations
+      allow create, update, delete: if false;
+    }
+
+    // --- 🔑 PASSWORD RESETS ---
+    match /password_resets/{docId} {
+      // Allow unauthenticated access for initiating password reset (if needed)
+      allow create: if true;
+
+      // Only admin can read/delete password reset requests
+      allow read, delete: if request.auth != null && isAdmin();
+
+      // Disallow updates
+      allow update: if false;
+    }
+
+    // --- 🚫 DENY ALL ELSE ---
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
