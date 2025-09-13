@@ -38,16 +38,6 @@ Live: [mockrithm.vercel.app](https://mockrithm.vercel.app)
 
 ---
 
-## 📸 Screenshots
-
-| Login with Google           | Admin Dashboard         | User Dashboard            |
-|----------------------------|------------------------|---------------------------|
-| ![](screenshots/login.png)  | ![](screenshots/admin.png) | ![](screenshots/user.png) |
-
-*Replace with your actual screenshots.*
-
----
-
 ## 🏁 Getting Started
 
 ### Prerequisites
